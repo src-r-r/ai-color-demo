@@ -1,0 +1,448 @@
+/* ───────────── Reset & Variables ───────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #111118;
+  --bg-elevated: #1a1a24;
+  --bg-card: #22222e;
+  --text: #e4e4ed;
+  --text-dim: #88889a;
+  --accent: #6c72ff;
+  --accent-hover: #8589ff;
+  --danger: #ff4466;
+  --success: #44dd88;
+  --border: #2e2e3e;
+  --radius: 8px;
+
+  --clr-red: #e74c3c;
+  --clr-orange: #e67e22;
+  --clr-yellow: #f1c40f;
+  --clr-green: #2ecc71;
+  --clr-blue: #3498db;
+  --clr-violet: #9b59b6;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ───────────── Header ───────────── */
+header {
+  text-align: center;
+  padding: 2rem 1rem 1rem;
+}
+
+header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+header p {
+  color: var(--text-dim);
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+}
+
+/* ───────────── Tabs ───────────── */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+  background: var(--bg-elevated);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-bottom: 3px solid transparent;
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  color: var(--text);
+  background: var(--bg-card);
+}
+
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: var(--bg-card);
+}
+
+/* ───────────── Panels ───────────── */
+main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* ───────────── Controls ───────────── */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+  padding: 1rem;
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+
+.control-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+label {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+input[type="number"] {
+  width: 70px;
+  padding: 0.35rem 0.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+input[type="number"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* ───────────── Buttons ───────────── */
+button {
+  padding: 0.45rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+button:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#stop-btn:hover:not(:disabled) {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+/* ───────────── Weight Sliders ───────────── */
+.weights-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--bg-elevated);
+}
+
+.weights-panel legend {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0 0.5rem;
+}
+
+.weight-sliders {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.weight-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1 1 200px;
+}
+
+.color-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.weight-item label {
+  min-width: 50px;
+  font-size: 0.8rem;
+  text-transform: capitalize;
+}
+
+.weight-item input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.weight-val {
+  min-width: 28px;
+  text-align: right;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+}
+
+/* ───────────── Board ───────────── */
+.board-container {
+  display: grid;
+  gap: 2px;
+  padding: 1rem;
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.board-cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  min-width: 8px;
+  transition: opacity 0.15s;
+}
+
+.board-cell:hover {
+  opacity: 0.75;
+}
+
+/* ───────────── Metrics ───────────── */
+.training-status {
+  margin-bottom: 1rem;
+}
+
+.metric-cards {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.metric-card {
+  flex: 1;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  text-align: center;
+}
+
+.metric-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.metric-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ───────────── Progress Bar ───────────── */
+.progress-container {
+  height: 6px;
+  background: var(--bg-card);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+/* ───────────── Loss Chart ───────────── */
+.loss-chart {
+  width: 100%;
+  height: 180px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+}
+
+/* ───────────── Info Text ───────────── */
+.info-text {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  font-style: italic;
+  min-height: 1.2em;
+}
+
+/* ───────────── Inference ───────────── */
+.inference-input,
+.prediction-result,
+.chain-result {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.input-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.sequence-display,
+.prediction-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.seq-cell {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.prediction-cell {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: 2px solid var(--accent);
+  animation: pulse-border 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: var(--accent); }
+  50% { border-color: var(--accent-hover); }
+}
+
+.arrow {
+  color: var(--text-dim);
+  margin: 0 0.25rem;
+  font-size: 1.2rem;
+}
+
+/* ───────────── Color Picker ───────────── */
+.color-picker {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.color-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.color-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.color-btn:hover {
+  transform: scale(1.15);
+  border-color: #fff;
+}
+
+.chain-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.chain-label input {
+  width: 55px;
+}
+
+.chain-result {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 1rem;
+}
+
+.chain-cell {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chain-cell.chained {
+  border: 1px solid var(--success);
+}
+
+/* ───────────── Responsive ───────────── */
+@media (max-width: 600px) {
+  .tab-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .metric-cards {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .controls {
+    padding: 0.75rem;
+  }
+}
