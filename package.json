@@ -1,0 +1,22 @@
+{
+  "name": "ai_color_demo",
+  "version": "1.0.0",
+  "description": "Frontend-only app demonstrating the full AI pipeline — **data generation → model training → inference** — entirely in your browser with no backend.",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx serve .",
+    "deploy": "surge ./ ai-color-demo.surge.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/src-r-r/ai-color-demo.git"
+  },
+  "keywords": [],
+  "author": "Jordan Hewitt <jordan@damngood.tech>",
+  "license": "MIT",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/src-r-r/ai-color-demo/issues"
+  },
+  "homepage": "https://github.com/src-r-r/ai-color-demo#readme"
+}
