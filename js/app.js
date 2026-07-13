@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  initWeightsPanel();
+  initPatternPanel();
   initInferenceUI();
   renderInputSequence();
   renderBoard();
@@ -25,14 +25,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  document.getElementById('randomize-btn').addEventListener('click', randomizeWeights);
+  document.getElementById('raw-data-toggle').addEventListener('toggle', () => {
+    if (document.getElementById('raw-data-toggle').open) {
+      updateRawDataDisplay();
+    }
+  });
+
+  const noiseSlider = document.getElementById('noise-slider');
+  noiseSlider.addEventListener('input', () => {
+    noiseLevel = parseInt(noiseSlider.value);
+    document.getElementById('noise-val').textContent = noiseLevel;
+    updateTransitionMatrix();
+    renderTransitionMatrix();
+  });
+
   document.getElementById('generate-btn').addEventListener('click', generateBoard);
   document.getElementById('train-btn').addEventListener('click', trainModel);
   document.getElementById('stop-btn').addEventListener('click', stopTraining);
   document.getElementById('random-seq-btn').addEventListener('click', generateRandomSequence);
   document.getElementById('clear-seq-btn').addEventListener('click', clearSequence);
   document.getElementById('predict-btn').addEventListener('click', predictNext);
-  document.getElementById('chain-btn').addEventListener('click', chainGenerate);
 
   window.addEventListener('beforeunload', () => {
     tf.disposeVariables();

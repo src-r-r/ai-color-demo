@@ -1,53 +1,123 @@
 let board = null;
-let weights = [1, 1, 1, 1, 1, 1];
+let transitionMatrix = null;
+let currentPattern = 'rainbow';
+let noiseLevel = 2;
 
-function initWeightsPanel() {
-  const container = document.getElementById('weight-sliders');
+const PATTERNS = [
+  { id: 'rainbow', label: '🌈 Rainbow', desc: 'Colors flow in order: red → orange → yellow → green → blue → violet → ...' },
+  { id: 'hotcold', label: '🔥 Hot & Cold', desc: 'Warm colors stay warm, cool colors stay cool. Two distinct groups.' },
+  { id: 'mirror', label: '🪞 Mirror', desc: 'Colors jump to their opposite: red ↔ violet, orange ↔ blue, yellow ↔ green.' },
+  { id: 'pairs', label: '👥 Pairs', desc: 'Colors alternate within pairs: red↔orange, yellow↔green, blue↔violet.' },
+];
+
+function initPatternPanel() {
+  const container = document.getElementById('pattern-selector');
   container.innerHTML = '';
 
-  COLORS.forEach((color, i) => {
-    const item = document.createElement('div');
-    item.className = 'weight-item';
+  const sel = document.createElement('select');
+  sel.id = 'pattern-select';
+  PATTERNS.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.label;
+    if (p.id === currentPattern) opt.selected = true;
+    sel.appendChild(opt);
+  });
 
-    const swatch = document.createElement('span');
-    swatch.className = 'color-swatch';
-    swatch.style.background = color.hex;
+  sel.addEventListener('change', () => {
+    currentPattern = sel.value;
+    updateTransitionMatrix();
+    renderTransitionMatrix();
+  });
 
-    const label = document.createElement('label');
-    label.textContent = color.name;
+  container.appendChild(sel);
 
-    const slider = document.createElement('input');
-    slider.type = 'range';
-    slider.min = '0';
-    slider.max = '10';
-    slider.step = '1';
-    slider.value = weights[i];
-    slider.dataset.index = i;
+  const desc = document.getElementById('pattern-desc');
+  updatePatternDesc();
+  sel.addEventListener('change', updatePatternDesc);
 
-    const val = document.createElement('span');
-    val.className = 'weight-val';
-    val.textContent = weights[i];
+  updateTransitionMatrix();
+  renderTransitionMatrix();
+}
 
-    slider.addEventListener('input', () => {
-      weights[i] = parseInt(slider.value);
-      val.textContent = slider.value;
-    });
+function updatePatternDesc() {
+  const p = PATTERNS.find(p => p.id === currentPattern);
+  document.getElementById('pattern-desc').textContent = p ? p.desc : '';
+}
 
-    item.appendChild(swatch);
-    item.appendChild(label);
-    item.appendChild(slider);
-    item.appendChild(val);
-    container.appendChild(item);
+function updateNoiseSlider() {
+  document.getElementById('noise-slider').value = noiseLevel;
+  document.getElementById('noise-val').textContent = noiseLevel;
+  updateTransitionMatrix();
+  renderTransitionMatrix();
+}
+
+function updateTransitionMatrix() {
+  transitionMatrix = buildTransitionMatrix(currentPattern, noiseLevel);
+}
+
+function buildTransitionMatrix(pattern, noise) {
+  let raw = makeRawMatrix(pattern);
+  raw = normalizeRows(raw);
+  const noiseFactor = noise / 10;
+  if (noiseFactor > 0) {
+    for (let i = 0; i < NUM_COLORS; i++) {
+      for (let j = 0; j < NUM_COLORS; j++) {
+        raw[i][j] = raw[i][j] * (1 - noiseFactor) + (1.0 / NUM_COLORS) * noiseFactor;
+      }
+    }
+  }
+  return raw;
+}
+
+function makeRawMatrix(pattern) {
+  switch (pattern) {
+    case 'rainbow': return [
+      [0, 10, 1, 0, 0, 0],
+      [0, 0, 10, 1, 0, 0],
+      [0, 0, 0, 10, 1, 0],
+      [0, 0, 0, 0, 10, 1],
+      [0, 0, 0, 0, 0, 10],
+      [10, 1, 0, 0, 0, 0],
+    ];
+    case 'hotcold': return [
+      [10, 6, 3, 0, 0, 0],
+      [6, 10, 3, 0, 0, 0],
+      [3, 6, 10, 0, 0, 0],
+      [0, 0, 0, 10, 6, 3],
+      [0, 0, 0, 6, 10, 3],
+      [0, 0, 0, 3, 6, 10],
+    ];
+    case 'mirror': return [
+      [0, 0, 0, 0, 0, 10],
+      [0, 0, 0, 0, 10, 0],
+      [0, 0, 0, 10, 0, 0],
+      [0, 0, 10, 0, 0, 0],
+      [0, 10, 0, 0, 0, 0],
+      [10, 0, 0, 0, 0, 0],
+    ];
+    case 'pairs': return [
+      [0, 10, 0, 0, 0, 0],
+      [10, 0, 0, 0, 0, 0],
+      [0, 0, 0, 10, 0, 0],
+      [0, 0, 10, 0, 0, 0],
+      [0, 0, 0, 0, 0, 10],
+      [0, 0, 0, 0, 10, 0],
+    ];
+    default: return Array.from({ length: NUM_COLORS }, () => Array(NUM_COLORS).fill(1));
+  }
+}
+
+function normalizeRows(mat) {
+  return mat.map(row => {
+    const sum = row.reduce((a, b) => a + b, 0);
+    return row.map(v => v / sum);
   });
 }
 
-function randomizeWeights() {
-  weights = Array.from({ length: NUM_COLORS }, () => randomInt(0, 10));
-  const sliders = document.querySelectorAll('#weight-sliders input[type="range"]');
-  sliders.forEach((slider, i) => {
-    slider.value = weights[i];
-    slider.nextElementSibling.nextElementSibling.textContent = weights[i];
-  });
+function getNextColor(prevIdx) {
+  const probs = transitionMatrix[prevIdx];
+  return weightedRandom(probs);
 }
 
 function generateBoard() {
@@ -57,8 +127,11 @@ function generateBoard() {
   board = [];
   for (let r = 0; r < rows; r++) {
     const row = [];
-    for (let c = 0; c < cols; c++) {
-      row.push(weightedRandom(weights));
+    let prev = randomInt(0, NUM_COLORS - 1);
+    row.push(prev);
+    for (let c = 1; c < cols; c++) {
+      prev = getNextColor(prev);
+      row.push(prev);
     }
     board.push(row);
   }
@@ -95,4 +168,57 @@ function renderBoard() {
 
 function getBoard() {
   return board;
+}
+
+function getTransitionMatrix() {
+  return transitionMatrix;
+}
+
+function getCurrentPattern() {
+  return currentPattern;
+}
+
+function renderTransitionMatrix() {
+  const container = document.getElementById('transition-matrix');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!transitionMatrix) return;
+
+  const legend = document.createElement('div');
+  legend.className = 'matrix-legend';
+  legend.innerHTML = '<span>From</span><div class="matrix-grid-wrap"><div class="matrix-grid" id="matrix-grid"></div><div class="matrix-col-labels"></div></div>';
+
+  const grid = legend.querySelector('#matrix-grid');
+  const colLabels = legend.querySelector('.matrix-col-labels');
+
+  for (let j = 0; j < NUM_COLORS; j++) {
+    const lbl = document.createElement('div');
+    lbl.className = 'matrix-label-col';
+    lbl.innerHTML = `<span class="color-swatch" style="background:${getHex(j)}; width:10px; height:10px; display:inline-block;"></span> ${getName(j)}`;
+    colLabels.appendChild(lbl);
+  }
+
+  for (let i = 0; i < NUM_COLORS; i++) {
+    const rowWrap = document.createElement('div');
+    rowWrap.className = 'matrix-row-wrap';
+
+    const lbl = document.createElement('div');
+    lbl.className = 'matrix-label-row';
+    lbl.innerHTML = `<span class="color-swatch" style="background:${getHex(i)}; width:10px; height:10px; display:inline-block; vertical-align:middle;"></span> ${getName(i)}`;
+    rowWrap.appendChild(lbl);
+
+    for (let j = 0; j < NUM_COLORS; j++) {
+      const cell = document.createElement('div');
+      cell.className = 'matrix-cell';
+      const intensity = transitionMatrix[i][j];
+      const alpha = 0.08 + intensity * 0.85;
+      cell.style.background = `rgba(108, 114, 255, ${alpha})`;
+      cell.title = `${getName(i)} → ${getName(j)}: ${(intensity * 100).toFixed(1)}%`;
+      rowWrap.appendChild(cell);
+    }
+
+    grid.appendChild(rowWrap);
+  }
+
+  container.appendChild(legend);
 }

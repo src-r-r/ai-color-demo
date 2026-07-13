@@ -21,6 +21,29 @@
   <main>
     <!-- DATA GENERATION TAB -->
     <section id="generate" class="tab-panel active">
+      <div class="tab-description">
+        <h2>Step 1: Generate Training Data</h2>
+        <p>AI models learn from examples. This step creates a grid of colored tokens that the model will study to learn patterns. Each color is assigned an index (0–5), and the model will try to predict which color comes next based on the ones before it.</p>
+        <p>Pick a <strong>pattern</strong> to define how colors relate to each other. The <strong>noise</strong> slider adds randomness—more noise makes patterns harder to learn.</p>
+        <div class="control-hints">
+          <div class="control-hint">
+            <span class="hint-label">Pattern</span>
+            <span class="hint-desc">The rule governing which colors follow which. The model will learn this rule.</span>
+          </div>
+          <div class="control-hint">
+            <span class="hint-label">Noise</span>
+            <span class="hint-desc">Randomness injected into the pattern. Low = clear patterns, high = harder to learn.</span>
+          </div>
+          <div class="control-hint">
+            <span class="hint-label">Rows / Cols</span>
+            <span class="hint-desc">Size of the training data. More data = more training examples for the model.</span>
+          </div>
+          <div class="control-hint">
+            <span class="hint-label">Transition Matrix</span>
+            <span class="hint-desc">Visual map of the pattern: darker cells = more likely transitions from row color to column color.</span>
+          </div>
+        </div>
+      </div>
       <div class="controls">
         <div class="control-row">
           <label for="rows">Rows</label>
@@ -29,15 +52,25 @@
           <input type="number" id="cols" value="32" min="4" max="128">
         </div>
         <div class="control-row">
-          <button id="randomize-btn">Randomize Weights</button>
           <button id="generate-btn">Generate Board</button>
         </div>
       </div>
 
-      <fieldset class="weights-panel">
-        <legend>Color Weights</legend>
-        <div class="weight-sliders" id="weight-sliders"></div>
-      </fieldset>
+      <div class="pattern-panel">
+        <div class="pattern-controls">
+          <div class="pattern-select-wrap">
+            <label for="pattern-select">Pattern</label>
+            <div id="pattern-selector"></div>
+            <p id="pattern-desc" class="pattern-description"></p>
+          </div>
+          <div class="noise-control">
+            <label for="noise-slider">Noise</label>
+            <input type="range" id="noise-slider" min="0" max="10" step="1" value="2">
+            <span id="noise-val" class="noise-val">2</span>
+          </div>
+        </div>
+        <div class="transition-matrix" id="transition-matrix"></div>
+      </div>
 
       <div id="board-container" class="board-container" aria-label="Generated color board"></div>
       <p id="board-info" class="info-text"></p>
@@ -45,6 +78,34 @@
 
     <!-- TRAINING TAB -->
     <section id="train" class="tab-panel">
+      <div class="tab-description">
+        <h2>Step 2: Train the Model</h2>
+        <p>The model is a simple neural network (LSTM) that learns to predict the next color from a window of previous colors. Training adjusts the model's internal weights so its predictions get closer to the actual data.</p>
+        <p>As training progresses, <strong>loss</strong> should decrease (the model is making fewer mistakes) and <strong>accuracy</strong> should increase (more correct predictions).</p>
+        <div class="control-hints">
+          <div class="control-hint">
+            <span class="hint-label">Context Length</span>
+            <span class="hint-desc">How many previous colors the model sees. Longer context = more information, but harder to learn.</span>
+          </div>
+          <div class="control-hint">
+            <span class="hint-label">Epochs</span>
+            <span class="hint-desc">How many times the model cycles through all the training data. More epochs = more learning opportunity.</span>
+          </div>
+          <div class="control-hint">
+            <span class="hint-label">Learning Rate</span>
+            <span class="hint-desc">How big each weight adjustment is. Too high = overshoots; too low = learns too slowly.</span>
+          </div>
+          <div class="control-hint">
+            <span class="hint-label">Loss Chart</span>
+            <span class="hint-desc">Shows loss over time. A downward trend means the model is learning. A flat line means it has plateaued.</span>
+          </div>
+        </div>
+        <div class="metric-explanations">
+          <div class="metric-explanation"><strong>Epoch</strong> — current pass through the data</div>
+          <div class="metric-explanation"><strong>Loss</strong> — average error (lower is better)</div>
+          <div class="metric-explanation"><strong>Accuracy</strong> — % of correct predictions</div>
+        </div>
+      </div>
       <div class="controls">
         <div class="control-row">
           <label for="context-length">Context Length</label>
@@ -86,6 +147,29 @@
 
     <!-- INFERENCE TAB -->
     <section id="inference" class="tab-panel">
+      <div class="tab-description">
+        <h2>Step 3: Run Inference</h2>
+        <p>Now that the model has learned from the training data, you can see what it predicts. Give the model a sequence of colors, and it will guess the next one based on the patterns it learned.</p>
+        <p>Each time you click <strong>Predict Next</strong>, the model's prediction is appended to the sequence. The next prediction uses the updated sequence, so the model is essentially continuing the pattern it has learned.</p>
+        <div class="control-hints">
+          <div class="control-hint">
+            <span class="hint-label">Sequence Length</span>
+            <span class="hint-desc">Length of random sequences generated by "Random Sequence".</span>
+          </div>
+          <div class="control-hint">
+            <span class="hint-label">Predict Next</span>
+            <span class="hint-desc">Feeds the current sequence to the model and appends the predicted next color.</span>
+          </div>
+          <div class="control-hint">
+            <span class="hint-label">Input Sequence</span>
+            <span class="hint-desc">The colors the model has been given so far. Build it manually or use random generation.</span>
+          </div>
+          <div class="control-hint">
+            <span class="hint-label">Prediction</span>
+            <span class="hint-desc">Shows the full sequence with the latest predicted token highlighted (accent border).</span>
+          </div>
+        </div>
+      </div>
       <div class="controls">
         <div class="control-row">
           <label for="infer-len">Sequence Length</label>
@@ -95,16 +179,16 @@
         </div>
         <div class="control-row">
           <button id="predict-btn" disabled>Predict Next</button>
-          <button id="chain-btn" disabled>Chain Generate</button>
-          <label class="chain-label">
-            <input type="number" id="chain-count" value="8" min="1" max="64"> steps
-          </label>
         </div>
       </div>
 
       <div class="inference-input">
         <span class="input-label">Input Sequence:</span>
         <div id="input-sequence" class="sequence-display"></div>
+        <details id="raw-data-toggle">
+          <summary>Training Data</summary>
+          <div id="raw-data-display" class="raw-data-display"></div>
+        </details>
       </div>
 
       <div id="color-picker" class="color-picker">
@@ -117,10 +201,13 @@
         <div id="prediction-display" class="prediction-display"></div>
       </div>
 
-      <div id="chain-result" class="chain-result"></div>
       <p id="infer-info" class="info-text"></p>
     </section>
   </main>
+
+  <footer>
+    <p>This project was created by <a href="https://damngood.tech" target="_blank" rel="noopener">Jordan Hewitt, Creation Lead in Tech</a>; generated using Qwen-3.6-27b on opencode. You can clone this project <a href="https://github.com/sr-r-r/ai-color-demo" target="_blank" rel="noopener">here</a>.</p>
+  </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
   <script src="js/utils.js"></script>

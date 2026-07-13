@@ -2,6 +2,28 @@
 
 Frontend-only JS app demonstrating the full AI pipeline: **data generation → model training → inference** using colored tokens.
 
+## Running
+
+```
+npx serve .
+```
+
+No build step. Served as static files. Open in browser.
+
+## File Structure
+
+```
+index.html          — entry point, tabbed UI, loads all scripts
+css/style.css       — all styling (dark theme, responsive)
+js/utils.js         — COLORS constant, weightedRandom(), drawLossChart()
+js/data.js          — board generation, weight panel, rendering
+js/model.js         — TF.js LSTM model creation, training loop
+js/inference.js     — prediction, random sequence, chain generation
+js/app.js           — DOMContentLoaded init, event wiring
+```
+
+Scripts load in order via `<script>` tags (no modules). All share global scope. `tf` comes from CDN (`@tensorflow/tfjs@4.22.0`).
+
 ## Architecture
 
 Three tabbed sections, all running in-browser (no backend):
@@ -13,10 +35,10 @@ Three tabbed sections, all running in-browser (no backend):
 - **Output**: The board renders as colored cells. Internally stored as a 2D array of color indices (0–5).
 
 ### 2. Training
-- **Model**: In-browser neural network. Use a simple RNN/LSTM or a tiny transformer that predicts the next color given a sequence of previous colors.
+- **Model**: Embedding (16-d) → LSTM (32 units) → Dense (6, softmax).
 - **Tokenization**: Colors are integer indices (0–5). Embed each into a vector, feed through the model, softmax over 6 classes.
-- **Training loop**: Slide a window (e.g. context length = N) over each row. Target = next color after the window. Train with cross-entropy loss, log loss per epoch.
-- **UI**: "Train" button, epoch/loss display, stop button. Training runs on the main thread (or Web Worker if model gets heavy).
+- **Training loop**: Slide a window (context length = N) over each row. Target = next color after the window. Train with categorical cross-entropy. One-hot targets are built manually (not tf.oneHot).
+- **UI**: "Train" button, epoch/loss/accuracy display, stop button. Uses `tf.nextFrame()` between epochs to keep UI responsive. Disposes tensors after training.
 
 ### 3. Inference
 - **Input**: A sequence of colors (max length = board row length). User can:
@@ -25,17 +47,14 @@ Three tabbed sections, all running in-browser (no backend):
 - **Output**: Model predicts the next "token" color. Display the full input sequence + predicted color.
 - **Chain**: Optionally run inference repeatedly to generate longer sequences (append prediction back as input).
 
-## Technical Details
+## Key Constraints
 
-- **Stack**: Frontend-only JavaScript. No framework required — vanilla JS + Canvas or DOM cells is sufficient. If using a framework, keep it minimal.
-- **Model library**: Use TensorFlow.js (`@tensorflow/tfjs`) for in-browser training and inference. It provides tf.layers for building RNNs/transformers and tf.model for training.
-- **No build step required**: Can be served via `npx serve .` or any static file server. If adding a build step, document commands here.
-- **State**: All model state, board data, and settings live in JS memory. No persistence needed.
+- The 6 color indices in `js/utils.js` (`COLORS` constant) must be consistent across all modules.
+- Context length for training must be less than column count.
+- Model state, board data, and settings live in JS memory only — no persistence.
+- All TF.js tensors must be disposed after use to avoid memory leaks (see `disposeTensors()` in model.js, input/pred disposal in inference.js).
+- `tf.disposeVariables()` is called on `beforeunload` in app.js.
 
-## Key Implementation Notes
+## Git Workflow
 
-- The 6 color indices must be consistent across all three sections (generation → training → inference).
-- Embedding dimension and hidden layer sizes should be small (e.g. 16–32) so training feels responsive in-browser.
-- The context/window length for training should match the inference input length.
-- Loss should drop visibly during training — this is a demo, so the learning signal matters.
-- Keep the UI visual-first: colored cells, progress bars, animated loss charts.
+- `main` branch is the stable baseline. Work on `feat/*` branches.
